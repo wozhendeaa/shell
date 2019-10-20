@@ -1,0 +1,8 @@
+a.txt
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+fff.txt
+Makefile
+shell
+shell.cbp
