@@ -75,11 +75,31 @@ runcmd(struct cmd *cmd)
             runcmd(rcmd->cmd);
             close(rcmd->fd);
             break;
-
         case '|':
             pcmd = (struct pipecmd*)cmd;
-            fprintf(stderr, "pipe not implemented\n");
-            // Your code here ...
+            int pipefd[2];
+            if (pipe(pipefd) == -1) {
+                perror("error creating pipe");
+                break;
+            }
+            int left = fork1();
+            if (left == 0) {
+                close(pipefd[0]);
+                dup2(pipefd[1], STDOUT_FILENO);
+                runcmd(pcmd->left);
+            }
+
+            int right = fork1();
+            if (right == 0) {
+                close(pipefd[1]);
+                dup2(pipefd[0], STDIN_FILENO);
+                runcmd(pcmd->right);
+            }
+
+            close(pipefd[0]);
+            close(pipefd[1]);
+            wait(left);
+            wait(right);
             break;
     }
     exit(0);
@@ -117,8 +137,6 @@ main(void)
             runcmd(parsecmd(buf));
         wait(&r);
     }
-    printf(fork1());
-    printf("!");
     exit(0);
 }
 
